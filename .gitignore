@@ -1,0 +1,38 @@
+# Planning docs (PRD / requirements) are kept local
+docs/
+
+# Secrets and wallet material
+.env
+.env.*
+.studio/
+node_modules/
+dist/
+.DS_Store
+
+# bnbagent-studio workspace defaults.
+# All agent secrets — the encrypted keystore AND .env.local — live HERE under
+# .studio/ at the workspace root, OUTSIDE app/agent (the deploy codeLocation),
+# so no deploy packaging path can bundle them. Never commit .studio/.
+
+# `bag dev --container` writes the runtime secret bundle (wallet material +
+# unlock password + provider/storage keys) into agentcore/.env.local so the dev
+# container can sign. The agentcore/ dir is otherwise committed, so ignore the
+# secret file here (never commit it).
+agentcore/.env.local
+
+# Node
+
+# Editor / OS junk
+*.swp
+.idea/
+.vscode/
+
+# Skills installed at workspace root (regeneratable via `bag skills install`).
+.claude/skills/
+
+# Sentinel runtime data (dossiers, reports, audit log)
+.sentinel-data/
+app/agent/.sentinel-data/
+
+# OCR language data tesseract.js downloads into the working directory
+*.traineddata
