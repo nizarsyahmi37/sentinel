@@ -1,0 +1,8 @@
+# Single-package workspace used when app/agent is the Docker build context.
+packages:
+  - .
+allowBuilds:
+  esbuild: true
+  tesseract.js: false
+minimumReleaseAgeExclude:
+  - '@bnbagent/studio-runtime@0.0.15'
