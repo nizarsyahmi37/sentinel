@@ -48,6 +48,7 @@ export function parseApiKeys(entries: string[]): { keys: Map<string, Principal>;
 export function requiredRole(method: string, path: string): Role {
   const m = method.toUpperCase();
   if (path.startsWith("/billing") || path.startsWith("/export") || path.startsWith("/webhooks")) return "admin";
+  if (path.startsWith("/agent/hire") && m !== "GET") return "admin";
   if (m === "GET" || m === "HEAD" || m === "OPTIONS") return "viewer";
   if (m === "DELETE") return "admin";
   return "analyst";

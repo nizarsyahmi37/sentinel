@@ -13,6 +13,9 @@ import { type RunnerEnv, recordSourceFailures as recordFailures, startAnalysis }
 import { StoreError, type AnalysisRecord, type LedgerEntry, type MonitorRecord, type TaskRef } from "./store.js";
 import { renderReportBody, renderReportHtml, REPORT_CSS } from "./reportHtml.js";
 import { realDocsCase } from "./issuerDocs.js";
+import { listProviderJobs, readJob } from "./jobs.js";
+import { type Hirer, isLoopback } from "./hire.js";
+import { defaultFetch } from "./sources.js";
 import { demoDossier, evidenceCaseDossier } from "./demo.js";
 import { DOCUMENT_KINDS, DossierSchema, ScenarioConfigSchema, SYMBOLS, UNIVERSE, isSymbol, type Dossier } from "./types.js";
 import { METHODOLOGY_VERSION, round, shortId } from "./util.js";
@@ -63,6 +66,8 @@ export interface ApiDeps extends RunnerEnv {
   requireApproval?: boolean;
   webhookPost?: Parameters<typeof dispatchWebhooks>[0]["webhookPost"];
   resolveHost?: Resolver;
+  /** Local-only demo buyer; absent unless SENTINEL_HIRE_BUYER_DIR is configured. */
+  hirer?: Hirer | null;
 }
 
 type Req = Request & { tenant?: string; caller?: string; user?: string; role?: Role };
@@ -639,6 +644,52 @@ export function createApi(deps: ApiDeps): Router {
     res.json({ service: serviceCatalog(deps.serviceInfo()), tasks, economics: economics(store.readLedger(), deps.serviceInfo().price_usd) });
   });
 
+  router.get("/agent/jobs", async (req, res) => {
+    const info = deps.serviceInfo();
+    const network = String(req.query.network ?? info.network);
+    if (!CHAIN_IDS.includes(network)) throw new ApiError(422, "invalid_request", "Unknown network.");
+    if (!info.agent_address) throw new ApiError(404, "not_found", "This agent has no wallet address.");
+    try {
+      const jobs = await listProviderJobs(deps.fetchImpl ?? defaultFetch, network, info.agent_address, { limit: Math.min(25, Math.max(1, Number(req.query.limit) || 10)) });
+      res.json({ provider: info.agent_address, network, jobs, note: "Jobs funded for this agent in roughly the last day, read from JobFunded events. Older jobs: look one up by id." });
+    } catch (e) {
+      throw new ApiError(502, "internal", `Could not list jobs from the chain: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  });
+  router.get("/agent/jobs/:id", async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isSafeInteger(id) || id < 0) throw new ApiError(422, "invalid_request", "Job id must be a non-negative integer.");
+    const network = String(req.query.network ?? deps.serviceInfo().network);
+    if (!CHAIN_IDS.includes(network)) throw new ApiError(422, "invalid_request", "Unknown network.");
+    try {
+      const job = await readJob(deps.fetchImpl ?? defaultFetch, network, id);
+      if (!job) throw new ApiError(404, "not_found", `No ERC-8183 job ${id} on ${network}.`);
+      const me = deps.serviceInfo().agent_address;
+      res.json({ job, is_this_agent: !!me && job.provider.toLowerCase() === me.toLowerCase(), note: "Read directly from the chain; no wallet or signing is used. COMPLETED means the escrow was released to the provider." });
+    } catch (e) {
+      if (e instanceof ApiError) throw e;
+      throw new ApiError(502, "internal", `Could not read the chain: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  });
+  router.get("/agent/hire", (_req, res) => res.json(deps.hirer ? deps.hirer.info() : { enabled: false, note: "Hiring from this page is a local demo helper. Set SENTINEL_HIRE_BUYER_DIR to a funded buyer project to enable it." }));
+  router.post("/agent/hire", (req, res) => {
+    if (!deps.hirer) throw new ApiError(404, "not_found", "Hiring from the UI is not enabled on this server.");
+    if (!isLoopback(req.socket.remoteAddress) || req.headers["x-forwarded-for"]) throw new ApiError(403, "forbidden", "Hiring from the UI is only available to a caller on the same machine.");
+    const b = z.object({ task: z.string().min(1).max(40) }).strict().safeParse(req.body);
+    if (!b.success) throw new ApiError(422, "invalid_request", 'Body must be {"task":"equity:NVDA"}.');
+    try {
+      res.status(202).json(deps.hirer.start(b.data.task.trim()));
+    } catch (e) {
+      const code = (e as { code?: number }).code;
+      if (code === 409 || code === 422 || code === 429) throw new ApiError(code === 409 ? 409 : code === 429 ? 429 : 422, code === 409 ? "conflict" : code === 429 ? "rate_limited" : "invalid_request", (e as Error).message);
+      throw e;
+    }
+  });
+  router.get("/agent/hire/:id", (req, res) => {
+    const run = deps.hirer?.get(String(req.params.id));
+    if (!run) throw new ApiError(404, "not_found", "No such hire.");
+    res.json(run);
+  });
   router.get("/demo/real-docs-case", async (req, res) => {
     const sym = String(req.query.symbol ?? "NVDA").toUpperCase();
     const issuer = String(req.query.issuer ?? "xstocks").toLowerCase();

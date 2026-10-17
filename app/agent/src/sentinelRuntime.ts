@@ -20,6 +20,8 @@ import { OidcVerifier, oidcConfigFromEnv } from "./sentinel/oidc.js";
 import { type CommerceEnv, TaskError, precheckTask, recordSubmit, createSentinelWork } from "./sentinel/commerce.js";
 import { createApi, startMonitorScheduler, type ServiceInfo } from "./sentinel/service.js";
 import { Store } from "./sentinel/store.js";
+import { createHirer, hireConfigFromEnv } from "./sentinel/hire.js";
+import { defaultFetch } from "./sentinel/sources.js";
 import type { Narrate } from "./sentinel/thesis.js";
 import { UI_HTML } from "./sentinel/ui.js";
 
@@ -63,6 +65,11 @@ export function defaultDataDir(cwd = process.cwd(), tmp = tmpdir()): string {
   }
 }
 
+const firstDefined = (...v: unknown[]): string | null => {
+  const x = v.find((y) => y !== undefined && y !== null && y !== "");
+  return x === undefined ? null : String(x);
+};
+
 export function buildSentinelRuntime(args: { cfg: Table; walletAddress: string; network: string }): SentinelRuntime {
   const dataDir = process.env.SENTINEL_DATA_DIR ?? defaultDataDir();
   const store = new Store(dataDir);
@@ -102,13 +109,14 @@ export function buildSentinelRuntime(args: { cfg: Table; walletAddress: string; 
   const seller = tbl(payments.seller);
   const stack = tbl(args.cfg.stack);
   const erc8004 = tbl(args.cfg.erc8004);
+  const identity = tbl(args.cfg.identity); // written by `bag deploy verify` after ERC-8004 registration
   const serviceInfo = (): ServiceInfo => ({
     price_usd: String(seller.price_usd ?? "0.10"),
     assets: Array.isArray(seller.assets) ? (seller.assets as string[]) : [],
     network: args.network,
     agent_address: args.walletAddress,
-    agent_id: process.env.SENTINEL_AGENT_ID ?? (erc8004.agent_id !== undefined ? String(erc8004.agent_id) : null),
-    agent_url: process.env.BNBAGENT_PUBLIC_URL ?? process.env.AGENTCORE_RUNTIME_URL ?? null,
+    agent_id: process.env.SENTINEL_AGENT_ID ?? firstDefined(identity.agent_id, erc8004.agent_id),
+    agent_url: process.env.BNBAGENT_PUBLIC_URL ?? process.env.AGENTCORE_RUNTIME_URL ?? (typeof identity.endpoint === "string" ? identity.endpoint : null),
     identity_tx: process.env.SENTINEL_IDENTITY_TX ?? null,
     protocols: Array.isArray(stack.protocols) ? (stack.protocols as string[]) : [],
     rails: [tbl(payments.erc8183).enabled !== false ? "erc8183" : "", tbl(payments.b402_seller).enabled !== false ? "b402" : ""].filter(Boolean),
@@ -122,12 +130,14 @@ export function buildSentinelRuntime(args: { cfg: Table; walletAddress: string; 
   const oidcCfg = oidcConfigFromEnv();
   const monitorMinutes = Number(process.env.SENTINEL_MONITOR_INTERVAL_MINUTES ?? 0);
   if (monitorMinutes > 0) startMonitorScheduler(env, monitorMinutes, process.env.SENTINEL_MONITOR_AUTO_REASSESS === "1");
+  const hireCfg = hireConfigFromEnv(process.env, serviceInfo());
   const routes = express.Router();
   routes.use(
     "/api/v1",
     createApi({
       ...env,
       serviceInfo,
+      hirer: hireCfg ? createHirer(hireCfg, { fetch: defaultFetch }) : null,
       apiKeys: keys,
       requireAuth: requireAuth && !oidcCfg,
       oidc: oidcCfg ? new OidcVerifier(oidcCfg) : null,
