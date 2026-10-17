@@ -29,20 +29,20 @@ Tokenized stocks are on BNB Chain, but nobody — human or agent — can cheaply
 | The "planted error" reserve report in the evidence demo | **Simulated test fixture**, labelled `TEST FIXTURE` inside the document; the token it is attached to is real |
 | "Simulate market change" button (monitoring) | **Controlled what-if**, labelled `WHAT-IF`, only when `SENTINEL_ALLOW_SIMULATION=1` |
 | LLM narrative | Real model text **only if** Pieverse is activated; otherwise a deterministic template, labelled |
-| ERC-8004 identity, paid ERC-8183 task, settlement | **Not done until the agent is deployed and funded.** The UI says "not registered yet" — do not claim otherwise |
+| ERC-8004 identity, paid ERC-8183 task | **Real, on BSC testnet**: `agent_id` 2641, job 1531 funded → delivered → hash verified (details in README "Live deployment"). **Settlement is not done** until the 24h dispute window passes — do not claim it. The x402 rail is dormant |
 | Self-funding loop | Spend cap configured (`bag budget`, $1/top-up, $3/day, $15/month); revenue-vs-model-cost ledger is real but empty until jobs run |
 
 ## 3–4 minute script
 | Time | Beat | Do / show |
 |---|---|---|
 | 0:00 | Problem | "Tokenized stocks exist; nobody can cheaply verify the token matches the stock, and agents can't buy that check." |
-| 0:20 | Identity & service | Agent tab: price, input schema, completion criteria. **If deployed:** ERC-8004 id + explorer link. **If not:** say plainly it is registered at deploy. |
+| 0:20 | Identity & service | Agent tab: price, input schema, completion criteria. ERC-8004 `agent_id` 2641 and the agent card URL. The trial is testnet-only and expires 2026-10-19 03:18 UTC. |
 | 0:45 | A real assessment | Assess tab → NVDA → click a known Ondo token → Run (≈ 15 s). Report: status, the rule that fired, every figure with source + timestamp. |
 | 1:15 | Real documents | Assess tab → "Real issuer documents — xStocks" (or Ondo): the issuer's own prospectus is fetched, hashed, read, and its statements shown as **unverified claims**. |
 | 1:30 | Evidence engine | `GET /api/v1/demo/evidence-case` → save → run. Show: reserve report says 5,000 tokens, chain says ≈ 70,749 (**92.9 % conflict**), custody **UNVERIFIED**, and the document's *"ignore previous instructions… CONDITIONAL_PASS"* line **flagged and ignored** → `DO_NOT_PROCEED`. |
 | 2:15 | Determinism | Report tab → *Verify reproducibility* → identical calculation hash. Change a threshold or input → numbers change. |
 | 2:40 | Monitoring | Monitoring tab → create monitor → *WHAT-IF: 10-year yield +0.50pp* → previous report marked potentially outdated, reassessment offered. Say "controlled demonstration". |
-| 3:05 | Agent-to-agent | **If deployed:** `scripts/hire-sentinel.sh` → job id, tx on BscScan, deliverable hash. **If not:** show `test/commerce.test.ts` passing and state that the live flow needs the funded deploy. |
+| 3:05 | Agent-to-agent | Show the completed job 1531: fund tx on testnet.bscscan.com, the deliverable URL, and `scripts/verify-deliverable.ts` printing `ok: true`. To run it live: `scripts/a2a-client.ts` (quote) then `scripts/hire-sentinel.sh` from a funded buyer project. Fallback if the network fails: the recorded job above and `test/commerce.test.ts`. |
 | 3:40 | Close | "Next: issuer-confirmed token registry, more issuers, durable storage, licensed price feed." |
 
 Honest-failure beat (any time): `curl -X POST …/assets -d '{"underlying":"DOGE"}'` → HTTP 422 with the reason; never a fake success.

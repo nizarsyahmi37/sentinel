@@ -52,7 +52,7 @@ cd app/agent && npx tsx --test test/*.test.ts   # 116+ tests, no network needed
 | Source + timestamp on every figure | report section 4; limitations listed where a source failed |
 | Known-answer tests | `app/agent/test/knownanswer.test.ts`, `data.test.ts` |
 | Honest failures | `test/api.test.ts` "forced failures", `test/commerce.test.ts` |
-| Agent identity / paid testnet job | **needs deployment + funds** — see `docs/PENDING.md`; the UI shows "not registered yet" until then |
+| Agent identity / paid testnet job | **Done on BSC testnet** — ERC-8004 `agent_id` 2641; paid ERC-8183 job **1531** (0.10 U) funded, delivered and hash-verified; see "Live deployment" below. Settlement is pending the 24h dispute window |
 | Real issuer documents | `GET /api/v1/demo/real-docs-case?symbol=NVDA&issuer=xstocks` (or `ondo`) — fetches the issuer's own public documents and attaches them to a real token |
 | Planted-error evidence demo | `GET /api/v1/demo/evidence-case` (real token + labelled fixture document: conflict, unverified claim, ignored injection) |
 | Fallback if network/testnet fails | `demo-fallback/` — screenshots, a real report (JSON/CSV) and a portfolio sample captured from a live run |
@@ -84,9 +84,19 @@ A *deployed* runtime with no API keys refuses the REST API instead of exposing t
 3. Fund the ERC-8183 job and send `notify_funded`; Sentinel verifies on-chain, fetches live data, analyses and submits the report. A failed analysis — or a data outage — submits **nothing**, so the buyer can use the refund/expiry path.
 4. Fetch the deliverable and check it: `cd app/agent && npx tsx ../../scripts/verify-deliverable.ts deliverable.json`. See `scripts/hire-sentinel.sh`.
 
-## Deploy (not done yet)
+## Live deployment (BNB Chain managed-platform trial, BSC testnet)
 
-`bag doctor` → `bag deploy prepare` → `bag deploy --provider bnb` (48h testnet trial; sends the wallet key to the operator — use the throwaway wallet) → `bag deploy verify` registers the ERC-8004 identity.
+Deployed 2026-10-17 with `bag deploy --provider bnb`; the 48h trial runtime is deleted at **2026-10-19 03:18 UTC**.
+
+| | |
+|---|---|
+| Agent card | https://bnbagent-api.bnbchain.world/v1/rt/01M53XVV1VPE9MS604Y48VB4PM/.well-known/agent-card.json |
+| ERC-8004 identity | `agent_id` 2641 (seller wallet `0x6571415fc43208726012226C419a29d3C982e2C3`) |
+| A2A access | OAuth2 `client_credentials` from the platform (`bag platform invoke-client new`) |
+| Paid-task proof | job **1531**: signed quote 0.10 U → buyer funded the escrow (tx `0x20b4fafa…d8de`) → `notify_funded` → report SUBMITTED on-chain |
+| Deliverable | https://bnbagent-api.bnbchain.world/v1/deliverables/sha256/1ade67f5354d688c9fe081b4fb1b5a282dbf6e13e6fba4636f6db6d9f2bc7702.json (sha-256 matches the URL; report hash recomputed by `scripts/verify-deliverable.ts`) |
+
+The delivered NVDA report is `NEEDS_REVIEW`: no token contract or custody evidence was supplied in the task, so it lists them as required diligence. The x402 rail is dormant (no B402 merchant credentials). The managed runtime's file store is not durable. Reproduce the quote with `scripts/a2a-client.ts`; the buyer side is `scripts/hire-sentinel.sh`.
 
 ## Known gaps
 
