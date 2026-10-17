@@ -13,7 +13,7 @@ import { type RunnerEnv, recordSourceFailures as recordFailures, startAnalysis }
 import { StoreError, type AnalysisRecord, type LedgerEntry, type MonitorRecord, type TaskRef } from "./store.js";
 import { renderReportBody, renderReportHtml, REPORT_CSS } from "./reportHtml.js";
 import { realDocsCase } from "./issuerDocs.js";
-import { listProviderJobs, readJob } from "./jobs.js";
+import { deliverableUrls, listProviderJobs, readJob, summarizeDeliverable } from "./jobs.js";
 import { type Hirer, isLoopback } from "./hire.js";
 import { defaultFetch } from "./sources.js";
 import { demoDossier, evidenceCaseDossier } from "./demo.js";
@@ -665,7 +665,15 @@ export function createApi(deps: ApiDeps): Router {
       const job = await readJob(deps.fetchImpl ?? defaultFetch, network, id);
       if (!job) throw new ApiError(404, "not_found", `No ERC-8183 job ${id} on ${network}.`);
       const me = deps.serviceInfo().agent_address;
-      res.json({ job, is_this_agent: !!me && job.provider.toLowerCase() === me.toLowerCase(), note: "Read directly from the chain; no wallet or signing is used. COMPLETED means the escrow was released to the provider." });
+      const f = deps.fetchImpl ?? defaultFetch;
+      let deliverable_url: string | null = null;
+      let result: Awaited<ReturnType<typeof summarizeDeliverable>> | null = null;
+      let result_error: string | null = null;
+      if (job.submitted_at) {
+        deliverable_url = (await deliverableUrls(f, network, [id]).catch(() => new Map<number, string>())).get(id) ?? null;
+        if (deliverable_url) result = await summarizeDeliverable(f, deliverable_url).catch((e: unknown) => ((result_error = e instanceof Error ? e.message : String(e)), null));
+      }
+      res.json({ job, deliverable_url, result, result_error, is_this_agent: !!me && job.provider.toLowerCase() === me.toLowerCase(), note: "Read directly from the chain; no wallet or signing is used. COMPLETED means the escrow was released to the provider." });
     } catch (e) {
       if (e instanceof ApiError) throw e;
       throw new ApiError(502, "internal", `Could not read the chain: ${e instanceof Error ? e.message : String(e)}`);
