@@ -1,0 +1,75 @@
+section,id,label,value,unit,status,basis
+summary,status,Assessment status,NEEDS_REVIEW,,,R-REV-1 R-REV-5 R-REV-6
+metric,price_last,Last close,217.544998,currency,OK,last daily close (Yahoo Finance)
+metric,ret_1m,1-month return,-0.008184,ratio,OK,adj_close[t] / adj_close[t−21] − 1 (dividend-adjusted)
+metric,ret_3m,3-month return,0.071372,ratio,OK,adj_close[t] / adj_close[t−63] − 1 (dividend-adjusted)
+metric,ret_6m,6-month return,0.08113,ratio,OK,adj_close[t] / adj_close[t−126] − 1 (dividend-adjusted)
+metric,ret_12m,12-month return,0.212624,ratio,OK,adj_close[t] / adj_close[t−252] − 1 (dividend-adjusted)
+metric,volatility_1y,Annualised volatility (1y),0.372354,ratio,OK,"stdev(daily returns, 252d) × √252"
+metric,max_drawdown_1y,Maximum drawdown (1y),0.202144,ratio,OK,"max over t of (1 − adj_close[t] / running peak), 252d"
+metric,drawdown_from_high,Drawdown from 52-week high,0.090683,ratio,OK,"1 − last / max(adj_close, 252d)"
+metric,high_52w,52-week high (close),239.240005,currency,OK,"max(close, 252d)"
+metric,low_52w,52-week low (close),165.169998,currency,OK,"min(close, 252d)"
+metric,range_position_52w,Position in 52-week range,0.707101,ratio,OK,(last − low) / (high − low)
+metric,sma_50,50-day average close,223.144901,currency,OK,"mean(close, 50d)"
+metric,sma_200,200-day average close,202.988075,currency,OK,"mean(close, 200d)"
+metric,price_vs_sma200,Price vs 200-day average,0.071713,ratio,OK,last / sma_200 − 1
+metric,beta_spy_1y,Beta vs SPY (1y),1.894847,x,OK,"cov(r_asset, r_SPY) / var(r_SPY), aligned daily returns"
+metric,corr_spy_1y,Correlation with SPY (1y),0.644865,ratio,OK,"corr(r_asset, r_SPY)"
+metric,var95_1d,Historical 1-day VaR (95%),0.041265,ratio,OK,"−5th percentile of daily returns (≤2y); historical, not a forecast"
+metric,var95_10d,Historical 10-day VaR (95%),0.095418,ratio,OK,−5th percentile of overlapping 10-day returns (≤2y)
+metric,worst_20d,Worst 20-day return (≤2y),-0.185745,ratio,OK,min over t of adj_close[t] / adj_close[t−20] − 1
+metric,sharpe_1y,"Sharpe ratio (1y, vs 3-month Treasury)",0.587688,x,OK,(mean daily return × 252 − risk-free) / annualised volatility
+metric,avg_dollar_volume_3m,Average daily dollar volume (3m),25729360449.3542,currency,OK,"mean(close × volume, 63d)"
+metric,dividend_yield_ttm,Dividend yield (12m),0.00239,ratio,OK,dividends per share (12m) / last close
+metric,revenue_ttm,Revenue (TTM),302970000000,currency,OK,FY + YTD − prior-year YTD (SEC 10-K/10-Q)
+metric,net_income_ttm,Net income (TTM),77145000000,currency,OK,FY + YTD − prior-year YTD (SEC)
+metric,operating_income_ttm,Operating income (TTM),197579000000,currency,OK,FY + YTD − prior-year YTD (SEC)
+metric,ocf_ttm,Operating cash flow (TTM),134360000000,currency,OK,FY + YTD − prior-year YTD (SEC)
+metric,capex_ttm,Capital expenditure (TTM),7354000000,currency,OK,payments to acquire PP&E (SEC)
+metric,fcf_ttm,Free cash flow (TTM),127006000000,currency,OK,operating cash flow − |capex|
+metric,eps_ttm,Diluted EPS (TTM),7.91,currency,OK,sum of diluted EPS over four quarters (SEC)
+metric,market_cap,Market capitalisation,5242834455871.582,currency,OK,last close × shares outstanding (cover page)
+metric,pe_ttm,P/E (TTM),27.502528,x,OK,last close / diluted EPS (TTM)
+metric,ps_ttm,Price / sales (TTM),17.304797,x,OK,market cap / revenue (TTM)
+metric,net_margin,Net margin (TTM),0.254629,ratio,OK,net income / revenue
+metric,operating_margin,Operating margin (TTM),0.65214,ratio,OK,operating income / revenue
+metric,fcf_margin,Free-cash-flow margin (TTM),0.419203,ratio,OK,FCF / revenue
+metric,fcf_yield,Free-cash-flow yield,0.024225,ratio,OK,FCF (TTM) / market cap
+metric,revenue_growth_fy,Revenue growth (latest FY vs prior FY),0.654735,ratio,OK,revenue FY / revenue prior FY − 1
+metric,net_debt,Net debt (long-term debt − cash & equivalents),10923000000,currency,OK,long-term debt − cash and cash equivalents (latest filing)
+metric,net_debt_to_fcf,Net debt / FCF,0.086004,x,OK,net debt / FCF (TTM)
+metric,token_total_supply,Token total supply (on-chain),,count,MISSING,totalSupply() / 10^decimals
+metric,token_underlying_shares_implied,Underlying shares implied by supply,,count,MISSING,total supply / tokens_per_share
+metric,token_notional_usd,Value of the underlying shares the supply represents,,currency,MISSING,implied shares × last close
+metric,token_nav_per_token,Reference value per token,,currency,MISSING,last close / tokens_per_share
+metric,token_feed_price,On-chain price feed (token/USD),,currency,MISSING,latestRoundData().answer / 10^feedDecimals
+metric,token_premium_discount,Token premium (+) / discount (−) to reference value,,ratio,MISSING,feed price / (last close / tokens_per_share) − 1
+metric,token_feed_age_days,Age of the on-chain price update,,days,MISSING,(latest block time − feed updatedAt) / 86400
+metric,backing_ratio,Claimed custody vs implied shares,,ratio,MISSING,shares_held_in_custody (issuer claim) / shares implied by on-chain supply
+peer,ret_12m,12-month return,0.212624,,ok,peer_median=0.140725; vs_median=0.510924; percentile=0.58; n=12
+peer,volatility_1y,Volatility (1y),0.372354,,ok,peer_median=0.433407; vs_median=-0.140867; percentile=0.42; n=12
+peer,max_drawdown_1y,Max drawdown (1y),0.202144,,ok,peer_median=0.322206; vs_median=-0.372625; percentile=0.08; n=12
+peer,beta_spy_1y,Beta vs SPY,1.894847,,ok,peer_median=1.771883; vs_median=0.069398; percentile=0.5; n=12
+peer,pe_ttm,P/E (TTM),27.502528,,ok,peer_median=27.122035; vs_median=0.014029; percentile=0.55; n=11
+peer,ps_ttm,Price / sales (TTM),17.304797,,ok,peer_median=9.482711; vs_median=0.824879; percentile=0.8; n=10
+peer,fcf_yield,FCF yield,0.024225,,ok,peer_median=0.020667; vs_median=0.172187; percentile=0.5; n=10
+peer,net_margin,Net margin (TTM),0.254629,,ok,peer_median=0.185647; vs_median=0.37158; percentile=0.58; n=12
+scenario,market_down_10,Broad market −10% (beta-implied),-0.189485,ratio,computed,underlying_price: 217.545->176.3235
+scenario,market_down_20,Broad market −20% (beta-implied),-0.378969,ratio,computed,underlying_price: 217.545->135.1021
+scenario,vol_1sigma_1m,One-sigma monthly decline (volatility-implied),-0.107489,ratio,computed,underlying_price: 217.545->194.1612
+scenario,vol_2sigma_1m,Two-sigma monthly decline (volatility-implied),-0.214979,ratio,computed,underlying_price: 217.545->170.7775
+scenario,worst_20d_replay,Replay of the worst 20-day return in the last 2 years,-0.185745,ratio,computed,underlying_price: 217.545->177.1371
+scenario,drawdown_replay,Repeat of the 1-year maximum drawdown,-0.202144,ratio,computed,underlying_price: 217.545->173.5696
+scenario,multiple_derating,P/E multiple de-rates 20% (EPS unchanged),-0.2,ratio,computed,pe_multiple: 27.5025->22.002; underlying_price: 217.545->174.036
+scenario,eps_and_multiple,EPS −20% and multiple −10%,-0.28,ratio,computed,eps_ttm: 7.91->6.328; pe_multiple: 27.5025->24.7523; underlying_price: 217.545->156.6324
+scenario,token_discount_5,Token trades 5% below reference value (depeg / redemption friction),,ratio,not_computable,no token contract supplied
+scenario,token_discount_10,Token trades 10% below reference value (depeg / redemption friction),,ratio,not_computable,no token contract supplied
+scenario,combined_market_discount,Market −20% and token 10% below reference,,ratio,not_computable,no token contract supplied
+risk,token:token_missing,"No token contract was supplied, so the tokenized wrapper (contract, custody, redemption) was not assessed.",,,high,Provide the BNB Chain contract address.
+risk,underlying:volatility,Annualised 1-year volatility is 37.2%.,,,medium,Reflect volatility in position size.
+risk,market:market_sensitivity,Beta vs SPY is 1.894847; a 20% market fall implies about 37.9% loss on the underlying.,,,high,"Size the position for the stressed loss, not the average one."
+risk,market:data_availability,"Some inputs are stale: sec_revenue_fy, sec_revenue_fy_prior.",,,low,Refresh before relying on the report.
+risk,market:data_availability,"Prices come from an unofficial Yahoo Finance endpoint (delayed, no SLA); it is not a licensed market-data feed.",,,low,Use a licensed feed before commercial reliance.
+hash,calculation_hash,Calculation hash,65e9be15fdaa71a086f3e2fb8881fe61fd2eb6cb7e4fbee09f5f1bfe71fcdde3,,,
+hash,report_hash,Report hash,d22f603b9a26bd4b2f907ced23b562c187d4d935df1faefbee1a71598eb5ddb2,,,
