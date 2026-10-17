@@ -97,6 +97,7 @@ Deployed 2026-10-17 with `bag deploy --provider bnb`; the 48h trial runtime is d
 | Deliverable | https://bnbagent-api.bnbchain.world/v1/deliverables/sha256/1ade67f5354d688c9fe081b4fb1b5a282dbf6e13e6fba4636f6db6d9f2bc7702.json (sha-256 matches the URL; report hash recomputed by `scripts/verify-deliverable.ts`) |
 | Second paid job | job **1532** (fresh run of `scripts/hire-sentinel.sh`): funded, delivered, deliverable hash verified; payment moves to `COMPLETED` after the escrow releases |
 | See it in the UI | Agent tab → "Look up an on-chain job" (or `GET /api/v1/agent/jobs/{id}`) reads the job straight from the chain: status, parties, budget, deliverable hash. Read-only; nothing is signed |
+| Find any delivered report | Agent tab → **Recent jobs** lists every job funded for this agent with its task, status and a **report** link; **Open** shows the task, the result headline, the report hash and whether the file’s SHA-256 matches its link. The link is recorded on-chain (policy contract `JobInitialised` event), or run `bag erc8183 fetch <job_id>` from the buyer project |
 
 The delivered NVDA report is `NEEDS_REVIEW`: no token contract or custody evidence was supplied in the task, so it lists them as required diligence. The x402 rail is dormant (no B402 merchant credentials). The managed runtime's file store is not durable. Reproduce the quote with `scripts/a2a-client.ts`; the buyer side is `scripts/hire-sentinel.sh`.
 
