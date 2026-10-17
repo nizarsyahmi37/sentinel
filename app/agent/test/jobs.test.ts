@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { listProviderJobs, readJob } from "../src/sentinel/jobs.js";
+import { listProviderJobs, readJob, taskText } from "../src/sentinel/jobs.js";
 import type { FetchLike } from "../src/sentinel/sources.js";
 
 const word = (v: bigint | string): string => (typeof v === "bigint" ? v.toString(16) : v.replace(/^0x/u, "")).padStart(64, "0");
@@ -64,4 +64,13 @@ test("listProviderJobs: reads JobFunded events for the provider, newest first, w
   assert.deepEqual(jobs.map((j) => [j.job_id, j.status]), [[9, "COMPLETED"], [5, "FUNDED"]]);
   assert.equal(jobs[0]!.paid_to_provider, true);
   assert.ok(seen.includes("eth_getLogs"));
+});
+
+test("taskText pulls the task out of a signed quote, plain text, or junk", () => {
+  assert.equal(taskText('{"task":"equity:NVDA","price":"1"}'), "equity:NVDA");
+  assert.equal(taskText('{"request":{"task_description":"equity:SPY"}}'), "equity:SPY");
+  assert.equal(taskText("equity:AAPL"), "equity:AAPL");
+  assert.equal(taskText("{not json"), "{not json");
+  assert.equal(taskText('{"price":"1"}'), "");
+  assert.equal(taskText("x".repeat(500)).length, 200);
 });
