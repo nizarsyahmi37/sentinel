@@ -40,5 +40,6 @@ echo "5) Fetch the deliverable URL, download it, and verify its hash"
 bag erc8183 fetch "$JOB" --network "$NET" | grep -E "^(job_id|deliverable_url):"
 echo "   curl -o deliverable.json <deliverable_url> && (cd $REPO/app/agent && pnpm exec tsx ../../scripts/verify-deliverable.ts <path>/deliverable.json)"
 
-echo "6) Settle: approve after the 24h dispute window, or dispute within it"
-echo "   bag erc8183 settle $JOB --action approve   # or --action dispute"
+echo "6) Check payment: SUBMITTED becomes COMPLETED when the escrow is released to the seller (not instant; job 1531 took under an hour)"
+echo "   bag erc8183 status $JOB --network $NET        # or the Agent tab / GET /api/v1/agent/jobs/$JOB"
+echo "   (if the status stays SUBMITTED, settle or dispute: bag erc8183 settle $JOB --action approve|dispute)"

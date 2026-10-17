@@ -52,7 +52,7 @@ cd app/agent && npx tsx --test test/*.test.ts   # 116+ tests, no network needed
 | Source + timestamp on every figure | report section 4; limitations listed where a source failed |
 | Known-answer tests | `app/agent/test/knownanswer.test.ts`, `data.test.ts` |
 | Honest failures | `test/api.test.ts` "forced failures", `test/commerce.test.ts` |
-| Agent identity / paid testnet job | **Done on BSC testnet** — ERC-8004 `agent_id` 2641; paid ERC-8183 job **1531** (0.10 U) funded, delivered and hash-verified; see "Live deployment" below. Settlement is pending the 24h dispute window |
+| Agent identity / paid testnet job | **Done on BSC testnet** — ERC-8004 `agent_id` 2641; paid ERC-8183 job **1531** (0.10 U) funded, delivered and hash-verified; see "Live deployment" below. The job is `COMPLETED` on-chain: the seller received the 0.10 U payment |
 | Real issuer documents | `GET /api/v1/demo/real-docs-case?symbol=NVDA&issuer=xstocks` (or `ondo`) — fetches the issuer's own public documents and attaches them to a real token |
 | Planted-error evidence demo | `GET /api/v1/demo/evidence-case` (real token + labelled fixture document: conflict, unverified claim, ignored injection) |
 | Fallback if network/testnet fails | `demo-fallback/` — screenshots, a real report (JSON/CSV) and a portfolio sample captured from a live run |
@@ -95,6 +95,8 @@ Deployed 2026-10-17 with `bag deploy --provider bnb`; the 48h trial runtime is d
 | A2A access | OAuth2 `client_credentials` from the platform (`bag platform invoke-client new`) |
 | Paid-task proof | job **1531**: signed quote 0.10 U → buyer funded the escrow (tx `0x20b4fafa…d8de`) → `notify_funded` → report SUBMITTED on-chain |
 | Deliverable | https://bnbagent-api.bnbchain.world/v1/deliverables/sha256/1ade67f5354d688c9fe081b4fb1b5a282dbf6e13e6fba4636f6db6d9f2bc7702.json (sha-256 matches the URL; report hash recomputed by `scripts/verify-deliverable.ts`) |
+| Second paid job | job **1532** (fresh run of `scripts/hire-sentinel.sh`): funded, delivered, deliverable hash verified; payment moves to `COMPLETED` after the escrow releases |
+| See it in the UI | Agent tab → "Look up an on-chain job" (or `GET /api/v1/agent/jobs/{id}`) reads the job straight from the chain: status, parties, budget, deliverable hash. Read-only; nothing is signed |
 
 The delivered NVDA report is `NEEDS_REVIEW`: no token contract or custody evidence was supplied in the task, so it lists them as required diligence. The x402 rail is dormant (no B402 merchant credentials). The managed runtime's file store is not durable. Reproduce the quote with `scripts/a2a-client.ts`; the buyer side is `scripts/hire-sentinel.sh`.
 

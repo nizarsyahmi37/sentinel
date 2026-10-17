@@ -29,7 +29,7 @@ Tokenized stocks are on BNB Chain, but nobody — human or agent — can cheaply
 | The "planted error" reserve report in the evidence demo | **Simulated test fixture**, labelled `TEST FIXTURE` inside the document; the token it is attached to is real |
 | "Simulate market change" button (monitoring) | **Controlled what-if**, labelled `WHAT-IF`, only when `SENTINEL_ALLOW_SIMULATION=1` |
 | LLM narrative | Real model text **only if** Pieverse is activated; otherwise a deterministic template, labelled |
-| ERC-8004 identity, paid ERC-8183 task | **Real, on BSC testnet**: `agent_id` 2641, job 1531 funded → delivered → hash verified (details in README "Live deployment"). **Settlement is not done** until the 24h dispute window passes — do not claim it. The x402 rail is dormant |
+| ERC-8004 identity, paid ERC-8183 task | **Real, on BSC testnet**: `agent_id` 2641, job 1531 funded → delivered → hash verified (details in README "Live deployment"). The job shows `COMPLETED` and the seller wallet received the 0.10 U (verify with `bag erc8183 status 1531` from the buyer project). The x402 rail is dormant |
 | Self-funding loop | Spend cap configured (`bag budget`, $1/top-up, $3/day, $15/month); revenue-vs-model-cost ledger is real but empty until jobs run |
 
 ## 3–4 minute script
